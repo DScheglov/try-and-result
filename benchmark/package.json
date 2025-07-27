@@ -1,0 +1,22 @@
+{
+  "name": "benchmark",
+  "version": "1.0.0",
+  "main": "index.js",
+  "module": "commonjs",
+  "private": true,
+  "scripts": {
+    "start": "node --expose-gc index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "",
+  "devDependencies": {
+    "@types/benchmark": "^2.1.5",
+    "benchmark": "^2.1.4"
+  },
+  "dependencies": {
+    "try": "^1.0.0-beta.9",
+    "try-to-result": "^1.0.5"
+  }
+}
