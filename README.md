@@ -1,7 +1,7 @@
 # try-to-result [![Coverage Status](https://coveralls.io/repos/github/DScheglov/try-to-result/badge.svg?branch=main)](https://coveralls.io/github/DScheglov/try-to-result?branch=main) [![npm version](https://img.shields.io/npm/v/try-to-result.svg?style=flat-square)](https://www.npmjs.com/package/try-to-result) [![npm downloads](https://img.shields.io/npm/dm/try-to-result.svg?style=flat-square)](https://www.npmjs.com/package/try-to-result) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DScheglov/try-to-result/blob/master/LICENSE)
 
-A TypeScript-first implementation of the [try-operator proposal](https://github.com/arthurfiorette/proposal-try-operator).
-Provides `Result.ok`, `Result.error`, `Result.try`, and `Result.do` to make error handling explicit, type-safe, and ergonomic for both synchronous and asynchronous code.
+**TypeScript**-first emulation of the `try`‑operator proposed by [proposal-try-operator](https://github.com/arthurfiorette/proposal-try-operator),
+including a polyfill of `Result` type.
 
 ## Installation
 
@@ -240,8 +240,10 @@ For async workflows, use an `async function*` and `await`:
 type User = { id: string; name: string, companyId: string };
 
 const result = await Result.do(async function* (_) {
-  const user = yield* _(await fetchUser('1'));
-  const company = yield* _(await fetchCompany(user.companyId));
+  const user = yield* _(await fetchJson<User>('/users/1'));
+  const company = yield* _(await fetchJson<Company>(
+    `/companies/${user.companyId}`
+  ));
 
   return `${user.name} works at ${company.name}`;
 });
@@ -253,17 +255,17 @@ console.log(result); // Result.ok('John Doe works at Example Corp')
 
 ## Specification
 
-| API                                              | Description                                                                             |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| `import Result, { ok, error } from 'try-to-result'` | Default and named imports.                                                              |
-| `Result.ok(value)`                               | Creates a successful result.                                                            |
-| `Result.error(error)`                            | Creates an error result.                                                                |
-| `Result.try(value)`                              | Wraps a plain value in `Result.ok`.                                                     |
-| `Result.try(promise)`                            | Converts a Promise into `Promise<Result<T>>`.                                           |
-| `Result.try(fn, ...args)`                        | Calls a function (sync or async) with arguments, capturing thrown errors or rejections. |
-| `Result.collect(results)`                        | Collects multiple results into a single result of array of values. Returns the first error if any result is an ErrorResult. |
-| `Result.do(function*)`                           | Structured error handling with generator-based flow.                                    |
-| `Result.do(async function*)`                     | Structured error handling with async generator-based flow.                              |
+| API                                  | Description                                                                             |
+| ------------------------------------ | --------------------------------------------------------------------------------------- |
+| `import Result from 'try-to-result'` | Default and named imports.                                                              |
+| `Result.ok(value)`                   | Creates a successful result.                                                            |
+| `Result.error(error)`                | Creates an error result.                                                                |
+| `Result.try(value)`                  | Wraps a plain value in `Result.ok`.                                                     |
+| `Result.try(promise)`                | Converts a Promise into `Promise<Result<T>>`.                                           |
+| `Result.try(fn, ...args)`            | Calls a function (sync or async) with arguments, capturing thrown errors or rejections. |
+| `Result.collect(results)`            | Collects multiple results into a single result of array of values. Returns the first error if any result is an ErrorResult. |
+| `Result.do(function*)`               | Structured error handling with generator-based flow.                                    |
+| `Result.do(async function*)`         | Structured error handling with async generator-based flow.                              |
 
 ---
 
