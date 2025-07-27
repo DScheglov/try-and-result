@@ -15,7 +15,7 @@ class ResultOk<T> {
 }
 
 Object.defineProperty(ResultOk, 'name', {
-  value: 'Result.ok',
+  value: 'Result',
   writable: false,
   enumerable: false,
   configurable: false,
@@ -38,7 +38,7 @@ class ResultError<E = unknown> {
 }
 
 Object.defineProperty(ResultError, 'name', {
-  value: 'Result.error',
+  value: 'Result',
   writable: false,
   enumerable: false,
   configurable: false,
