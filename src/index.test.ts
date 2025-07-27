@@ -3,11 +3,34 @@ import { Equal, Expect } from '@type-challenges/utils';
 import Result, { ErrorResult, OnlyErrorResult, ValueResult } from './index';
 
 describe('Result', () => {
+  it('creates Result.ok as instance of Result', () => {
+    const result = Result.ok(42);
+    expect(result).toBeInstanceOf(Result);
+  });
+
+  it('creates Result.error as instance of Result', () => {
+    const result = Result.error(new Error('Something went wrong'));
+    expect(result).toBeInstanceOf(Result);
+  });
+
   it('creates a ValueResult with ok true', () => {
     const result = Result.ok(42);
     expect(result.ok).toBeTruthy();
     expect(result.value).toBe(42);
     expect(result).not.toHaveProperty('error');
+  });
+
+  it('allows to create a void Ok Result', () => {
+    const result = Result.ok();
+    expect(result.ok).toBeTruthy();
+    expect(result.value).toBeUndefined();
+    expect(result).not.toHaveProperty('error');
+  });
+
+  it('correctly types the void Ok Result', () => {
+    const result = Result.ok();
+    const check: Expect<Equal<typeof result, ValueResult<void>>> = true;
+    expect(check).toBeTruthy();
   });
 
   it('correctly types the result of ok', () => {
@@ -28,6 +51,19 @@ describe('Result', () => {
     expect(result.ok).toBeFalsy();
     expect(result.error).toBeInstanceOf(Error);
     expect(result).not.toHaveProperty('value');
+  });
+
+  it('allows to create a void Error Result', () => {
+    const result = Result.error();
+    expect(result.ok).toBeFalsy();
+    expect(result.error).toBeUndefined();
+    expect(result).not.toHaveProperty('value');
+  });
+
+  it('correctly types the void Error Result', () => {
+    const result = Result.error();
+    const check: Expect<Equal<typeof result, ErrorResult<void>>> = true;
+    expect(check).toBeTruthy();
   });
 
   it('correctly types the result of error', () => {

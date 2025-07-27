@@ -66,9 +66,21 @@ export type ValueResult<T> = readonly [
 
 type Result<T, E = unknown> = ValueResult<T> | ErrorResult<E>;
 
-export const ok = <T>(value: T) => new ResultOk(value) as ValueResult<T>;
+export type TypeOfValue<R> = R extends ValueResult<infer T> ? T : never;
 
-export const error = <E>(err: E) => new ResultError(err) as ErrorResult<E>;
+export type TypeOfError<R> = R extends ErrorResult<infer E> ? E : never;
+
+type NonResult<T> = T extends Result<any, any> ? never : T;
+
+export const ok: {
+  (): ValueResult<void>;
+  <T>(value: T): ValueResult<T>;
+} = <T = undefined>(value?: T) => new ResultOk(value) as ValueResult<T>;
+
+export const error: {
+  (): ErrorResult<void>;
+  <E = unknown>(err: E): ErrorResult<E>;
+} = <E = unknown>(err?: E) => new ResultError(err) as ErrorResult<E>;
 
 const asResult = <T>(value: T): T extends Result<any, any> ? T : Result<T> =>
   value instanceof Result ? (value as any) : (ok(value) as any);
@@ -76,25 +88,25 @@ const asResult = <T>(value: T): T extends Result<any, any> ? T : Result<T> =>
 const isPromise = (value: unknown): value is PromiseLike<unknown> =>
   value != null && typeof (value as any).then === 'function';
 
-export function doTry<Args extends unknown[]>(
+export function _try<Args extends unknown[]>(
   fn: (...args: Args) => never,
   ...args: Args
 ): OnlyErrorResult;
-export function doTry<Args extends unknown[]>(
+export function _try<Args extends unknown[]>(
   fn: () => Promise<never>,
   ...args: Args
 ): Promise<OnlyErrorResult>;
-export function doTry<T, Args extends unknown[]>(
+export function _try<T, Args extends unknown[]>(
   fn: () => Promise<T>,
   ...args: Args
 ): Promise<Result<T>>;
-export function doTry<T, Args extends unknown[]>(
+export function _try<T, Args extends unknown[]>(
   fn: () => T,
   ...args: Args
 ): Result<T>;
-export function doTry<T>(promise: Promise<T>): Promise<Result<T>>;
-export function doTry<T>(value: T): Result<T>;
-export function doTry<T, Args extends unknown[]>(
+export function _try<T>(promise: Promise<T>): Promise<Result<T>>;
+export function _try<T>(value: T): Result<T>;
+export function _try<T, Args extends unknown[]>(
   fn: Promise<T> | ((...args: Args) => T | Promise<T>),
   ...args: Args
 ): any {
@@ -117,12 +129,6 @@ function* unpackResult<S, F>(result: Result<S, F>): Generator<F, S> {
 }
 
 type Unpack = typeof unpackResult;
-
-type TypeOfValue<R> = R extends ValueResult<infer T> ? T : never;
-
-type TypeOfError<R> = R extends ErrorResult<infer E> ? E : never;
-
-type NonResult<T> = T extends Result<any, any> ? never : T;
 
 const processIteratorResult = <T, E>({
   done,
@@ -169,7 +175,7 @@ function collectResults<R extends readonly Result<any, any>[]>(
   { -readonly [K in keyof R]: TypeOfValue<R[K]> },
   { [K in keyof R]: TypeOfError<R[K]> }[number]
 > {
-  const values = [] as any[];
+  const values = [] as { -readonly [K in keyof R]: TypeOfValue<R[K]> };
 
   for (const result of results) {
     if (result.ok) {
@@ -179,13 +185,13 @@ function collectResults<R extends readonly Result<any, any>[]>(
     }
   }
 
-  return ok(values) as any;
+  return ok(values);
 }
 
 const Result = class {
   static ok = ok;
   static error = error;
-  static try = doTry;
+  static try = _try;
   static do = resultDo;
   static collect = collectResults;
 

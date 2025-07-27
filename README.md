@@ -1,7 +1,7 @@
 # try-to-result [![Coverage Status](https://coveralls.io/repos/github/DScheglov/try-to-result/badge.svg?branch=main)](https://coveralls.io/github/DScheglov/try-to-result?branch=main) [![npm version](https://img.shields.io/npm/v/try-to-result.svg?style=flat-square)](https://www.npmjs.com/package/try-to-result) [![npm downloads](https://img.shields.io/npm/dm/try-to-result.svg?style=flat-square)](https://www.npmjs.com/package/try-to-result) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DScheglov/try-to-result/blob/master/LICENSE)
 
-**TypeScript**-first emulation of the `try`‑operator proposed by [proposal-try-operator](https://github.com/arthurfiorette/proposal-try-operator),
-including a polyfill of `Result` type.
+A **TypeScript**-first emulation of the `try`‑operator proposed by [proposal-try-operator](https://github.com/arthurfiorette/proposal-try-operator),
+including a polyfill for the `Result` type.
 
 ## Installation
 
@@ -14,8 +14,6 @@ or
 ```bash
 yarn add try-to-result
 ```
-
----
 
 ## Usage
 
@@ -102,8 +100,6 @@ const result = Result.try(42);
 // result = Result.ok(42)
 ```
 
----
-
 ## Returning Results
 
 Instead of exceptions, you can return a typed `Result` from your functions:
@@ -141,16 +137,21 @@ type FetchError =
   | { code: 'PARSE_JSON_ERROR', cause: unknown }
   | { code: 'ABORTED' };
 
-type FetchJsonResult = Result<unknown, FetchError>;
+type FetchJsonResult<T> = Result<T, FetchError>;
 
-async function fetchJson(url: string, init?: RequestInit): Promise<FetchJsonResult> {
+async function fetchJson<T = unknown>(
+  url: string,
+  init?: RequestInit,
+): Promise<FetchJsonResult<T>> {
   const [ok, error, res] = await Result.try(fetch(url, init));
 
   if (!ok) {
     // no response received
-    return (error as any)?.name === 'AbortError'
-      ? Result.error({ code: 'ABORTED' })
-      : Result.error({ code: 'NETWORK_ERROR', cause: error });
+    return Result.error(
+      (error as any)?.name === 'AbortError'
+        ? { code: 'ABORTED' }
+        : { code: 'NETWORK_ERROR', cause: error },
+    );
   }
 
   if (!res.ok) {
@@ -165,7 +166,7 @@ async function fetchJson(url: string, init?: RequestInit): Promise<FetchJsonResu
     return Result.error({ code: 'PARSE_JSON_ERROR', cause: jsonError });
   }
 
-  return Result.ok(data as unknown);
+  return Result.ok(data as T);
 }
 
 type User = { id: string; name: string; companyId: string };
@@ -198,8 +199,6 @@ export async function fetchUser(id: string): Promise<User | null> {
 In the above example, `fetchJson` returns a `Promise` resolving to a `Result` and
 delegates error handling to the caller. Thanks to return value of `fetchJson` is
 strictly typed, the `fetchUser` function can confidently handle all error cases.
-
----
 
 ## Usage of typed results with `Result.do`
 
@@ -251,15 +250,14 @@ const result = await Result.do(async function* (_) {
 console.log(result); // Result.ok('John Doe works at Example Corp')
 ```
 
----
-
 ## Specification
 
 | API                                  | Description                                                                             |
 | ------------------------------------ | --------------------------------------------------------------------------------------- |
-| `import Result from 'try-to-result'` | Default and named imports.                                                              |
 | `Result.ok(value)`                   | Creates a successful result.                                                            |
+| `Result.ok()`                        | Creates a void successful result.                                                       |
 | `Result.error(error)`                | Creates an error result.                                                                |
+| `Result.error()`                     | Creates a void error result.                                                            |
 | `Result.try(value)`                  | Wraps a plain value in `Result.ok`.                                                     |
 | `Result.try(promise)`                | Converts a Promise into `Promise<Result<T>>`.                                           |
 | `Result.try(fn, ...args)`            | Calls a function (sync or async) with arguments, capturing thrown errors or rejections. |
@@ -267,7 +265,33 @@ console.log(result); // Result.ok('John Doe works at Example Corp')
 | `Result.do(function*)`               | Structured error handling with generator-based flow.                                    |
 | `Result.do(async function*)`         | Structured error handling with async generator-based flow.                              |
 
----
+### Type `Result`
+
+```ts
+type Result<T, E = unknown> = ValueResult<T> | ErrorResult<E>;
+```
+
+### Class `Result`
+
+```ts
+class Result {
+  static ok(): ValueResult<void>;
+  static ok<T>(value: T): ValueResult<T>;
+  static error(): ErrorResult<void>;
+  static error<E>(error: E): ErrorResult<E>;
+  static try<T>(value: T): ValueResult<T>;
+  static try<T>(fn: () => T): ValueResult<T>;
+  static try<T>(promise: Promise<T>): Promise<ValueResult<T>>;
+  static try<T>(fn: (...args: any[]) => T, ...args: any[]): ValueResult<T>;
+  static collect<T, E>(results: Result<T, E>[]): Result<T[], E>;
+  static do<T>(generator: (yield: <R>(result: Result<R>) => Result<R>) => Generator<Result<T>>): Result<T>;
+  static do<T>(generator: (yield: <R>(result: Promise<Result<R>>) => Promise<Result<R>>) => AsyncGenerator<Result<T>>): Promise<Result<T>>;
+}
+```
+
+The `Result` is not a constructor. So, you cannot use `new Result()`.
+Instead, use the static methods: `Result.ok`, `Result.error` to create results,
+and `Result.try`, `Result.collect`, and `Result.do` to work with them.
 
 ### `Result.ok: ValueResult<T>`
 
@@ -287,8 +311,6 @@ Constructed with:
 Result.ok(value)
 ```
 
----
-
 ### `Result.error: ErrorResult<T>`
 
 Represents an error value:
@@ -307,8 +329,6 @@ Constructed with:
 Result.error(error)
 ```
 
----
-
 ### `Result.try`
 
 Wraps a value, function, or promise:
@@ -323,10 +343,23 @@ Returns:
 * `Result<T>` for synchronous values
 * `Promise<Result<T>>` for async functions/promises
 
----
+Alternative import:
+
+```ts
+import { _try } from 'try-to-result';
+```
 
 ### `Result.collect`
-Collects multiple results into a single result of an array of values:
+
+Collects multiple results into a single result of an array of values.
+If all results are successful, it returns `Result.ok([values])`.
+
+```ts
+const result = Result.collect([Result.ok(1), Result.ok(2), Result.ok(3)]);
+// result = Result.ok([1, 2, 3])
+```
+
+If any result is an error, it returns the first error encountered:
 
 ```ts
 const result = Result.collect([Result.ok(1), Result.ok(2), Result.error('Error')]);
@@ -340,20 +373,25 @@ Simplifies working with nested results using generator functions:
 * For synchronous generators:
 
   ```ts
-  const result = Result.do(function* (_) { ... });
+  const result = Result.do(function* (_) { 
+    const value = yield* _(Result.ok(42));
+  });
   ```
 
   Returns a `Result`.
 
+  `yield* _(result)` unpacks a `Result`.
+
 * For asynchronous generators:
 
   ```ts
-  const result = await Result.do(async function* (_) { ... });
+  const result = await Result.do(async function* (_) { 
+    const value = yield* _(await Promise.resolve(Result.ok(42)));
+  });
   ```
 
   Returns a `Promise<Result>`.
 
-`yield* _(someResult)` unpacks a `Result`.
+  `yield* _(await Promise<someResult>)` unpacks a `Result`.
+
 If `someResult` is `Result.error`, control flow stops and returns that error.
-
-

@@ -6,12 +6,12 @@ export type FetchError =
   | { code: 'PARSE_JSON_ERROR'; cause: unknown }
   | { code: 'ABORTED' };
 
-export type FetchJsonResult = Result<unknown, FetchError>;
+export type FetchJsonResult<T> = Result<T, FetchError>;
 
-export async function fetchJson(
+export async function fetchJson<T = unknown>(
   url: string,
   init?: RequestInit,
-): Promise<FetchJsonResult> {
+): Promise<FetchJsonResult<T>> {
   const [ok, error, res] = await Result.try(fetch(url, init));
 
   if (!ok) {
@@ -35,5 +35,5 @@ export async function fetchJson(
     return Result.error({ code: 'PARSE_JSON_ERROR', cause: jsonError });
   }
 
-  return Result.ok(data as unknown);
+  return Result.ok(data as T);
 }
