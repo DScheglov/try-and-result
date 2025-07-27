@@ -24,7 +24,7 @@
     "test": "jest",
     "compile:cjs": "tsc --project tsconfig.cjs.json",
     "compile:esm": "tsc --project tsconfig.esm.json && echo '{ \"type\": \"module\" }' > dist/esm/package.json",
-    "compile:min": "tsup && cp dist/cjs/global.d.ts dist/build/global.min.d.ts",
+    "compile:min": "tsup",
     "compile": "rm -rf ./dist && npm run compile:cjs && npm run compile:esm && npm run compile:min"
   },
   "keywords": [
