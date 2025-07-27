@@ -1,6 +1,6 @@
 {
   "name": "try-to-result",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Result Type with try method to catch errors",
   "exports": {
     ".": {
