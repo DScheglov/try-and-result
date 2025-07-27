@@ -349,12 +349,4 @@ Simplifies working with nested results using generator functions:
 `yield* _(someResult)` unpacks a `Result`.
 If `someResult` is `Result.error`, control flow stops and returns that error.
 
----
 
-This library brings **explicit, type-safe error handling** to JavaScript and TypeScript, without exceptions.
-
----
-
-## License
-
-MIT
