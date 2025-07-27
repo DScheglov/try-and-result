@@ -2,7 +2,7 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: {
-    'try-result': 'src/index.ts',
+    'try-to-result': 'src/index.ts',
   },
   globalName: 'DoTryTuple',
   format: ['iife'],

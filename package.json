@@ -1,5 +1,5 @@
 {
-  "name": "try-result",
+  "name": "try-to-result",
   "version": "1.0.1",
   "description": "Result Type with try method to catch errors",
   "exports": {
@@ -58,7 +58,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DScheglov/try-result.git"
+    "url": "git+https://github.com/DScheglov/try-to-result.git"
   },
-  "homepage": "https://github.com/DScheglov/try-result"
+  "homepage": "https://github.com/DScheglov/try-to-result"
 }

@@ -1,4 +1,4 @@
-# try-result [![Coverage Status](https://coveralls.io/repos/github/DScheglov/try-result/badge.svg?branch=main)](https://coveralls.io/github/DScheglov/try-result?branch=main) [![npm version](https://img.shields.io/npm/v/try-result.svg?style=flat-square)](https://www.npmjs.com/package/try-result) [![npm downloads](https://img.shields.io/npm/dm/try-result.svg?style=flat-square)](https://www.npmjs.com/package/try-result) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DScheglov/try-result/blob/master/LICENSE)
+# try-to-result [![Coverage Status](https://coveralls.io/repos/github/DScheglov/try-to-result/badge.svg?branch=main)](https://coveralls.io/github/DScheglov/try-to-result?branch=main) [![npm version](https://img.shields.io/npm/v/try-to-result.svg?style=flat-square)](https://www.npmjs.com/package/try-to-result) [![npm downloads](https://img.shields.io/npm/dm/try-to-result.svg?style=flat-square)](https://www.npmjs.com/package/try-to-result) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DScheglov/try-to-result/blob/master/LICENSE)
 
 A TypeScript-first implementation of the [try-operator proposal](https://github.com/arthurfiorette/proposal-try-operator).
 Provides `Result.ok`, `Result.error`, `Result.try`, and `Result.do` to make error handling explicit, type-safe, and ergonomic for both synchronous and asynchronous code.
@@ -6,13 +6,13 @@ Provides `Result.ok`, `Result.error`, `Result.try`, and `Result.do` to make erro
 ## Installation
 
 ```bash
-npm install try-result
+npm install try-to-result
 ```
 
 or
 
 ```bash
-yarn add try-result
+yarn add try-to-result
 ```
 
 ---
@@ -25,7 +25,7 @@ It never throws – instead it returns a discriminated union you can safely dest
 ### Basic usage
 
 ```ts
-import Result from 'try-result';
+import Result from 'try-to-result';
 
 function div(a: number, b: number): number {
   if (b !== 0) return a / b;
@@ -44,7 +44,7 @@ if (ok) {
 or the same but without creating a new function:
 
 ```ts
-import Result from 'try-result';
+import Result from 'try-to-result';
 
 const [ok, error, value] = await Result.try(div, 4, 2);
 
@@ -60,7 +60,7 @@ if (ok) {
 You can also use `Result.try` with promises and async functions:
 
 ```ts
-import Result from 'try-result';
+import Result from 'try-to-result';
 
 type User = { id: string; name: string };
 
@@ -109,7 +109,7 @@ const result = Result.try(42);
 Instead of exceptions, you can return a typed `Result` from your functions:
 
 ```ts
-import Result from 'try-result';
+import Result from 'try-to-result';
 
 type DivError = 
   | 'ERR_DIV_BY_ZERO' // x / 0, x != 0
@@ -133,7 +133,7 @@ if (result.ok) {
 ### Returning Async Results
 
 ```ts
-import Result from 'try-result';
+import Result from 'try-to-result';
 
 type FetchError = 
   | { code: 'NETWORK_ERROR', cause: unknown }
@@ -250,7 +250,7 @@ console.log(result); // Result.ok('John Doe works at Example Corp')
 
 | API                                              | Description                                                                             |
 | ------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| `import Result, { ok, error } from 'try-result'` | Default and named imports.                                                              |
+| `import Result, { ok, error } from 'try-to-result'` | Default and named imports.                                                              |
 | `Result.ok(value)`                               | Creates a successful result.                                                            |
 | `Result.error(error)`                            | Creates an error result.                                                                |
 | `Result.try(value)`                              | Wraps a plain value in `Result.ok`.                                                     |
