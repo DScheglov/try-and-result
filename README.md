@@ -135,55 +135,60 @@ if (result.ok) {
 ```ts
 import Result from 'try-to-result';
 
-type FetchError = 
+type FetchError =
   | { code: 'NETWORK_ERROR', cause: unknown }
   | { code: 'HTTP_ERROR', status: number }
-  | { code: 'PARSE_JSON_ERROR', cause: unknown};
+  | { code: 'PARSE_JSON_ERROR', cause: unknown }
+  | { code: 'ABORTED' };
 
-async function fetchJson(url: string): Promise<Result<unknown, FetchError>> {
-  const [ok, error, res] = await Result.try(
-    fetch(`https://api.example.com/users/${id}`),
-  );
+type FetchJsonResult = Result<unknown, FetchError>;
+
+async function fetchJson(url: string, init?: RequestInit): Promise<FetchJsonResult> {
+  const [ok, error, res] = await Result.try(fetch(url, init));
 
   if (!ok) {
     // no response received
-    return Result.error({ kind: 'NETWORK_ERROR', cause: error });
+    return (error as any)?.name === 'AbortError'
+      ? Result.error({ code: 'ABORTED' })
+      : Result.error({ code: 'NETWORK_ERROR', cause: error });
   }
 
   if (!res.ok) {
     // handle HTTP errors
-    return Result.error({ kind: 'HTTP_ERROR', status: res.status });
+    return Result.error({ code: 'HTTP_ERROR', status: res.status });
   }
 
   const [okJson, jsonError, data] = await Result.try(res.json());
 
   if (!okJson) {
     // failed to parse JSON response
-    return Result.error({ kind: 'PARSE_JSON_ERROR', cause: jsonError });
+    return Result.error({ code: 'PARSE_JSON_ERROR', cause: jsonError });
   }
 
   return Result.ok(data as unknown);
 }
 
-type FetchUserError = 
-  | 'ERR_INSUFFICIENT_PERMISSIONS'
-  | 'ERR_NOTFOUND_USER'
+type User = { id: string; name: string; companyId: string };
 
-async function fetchUser(id: string): Promise<Result<User, FetchUserError>> {
-  const [ok, error, data] = await fetchJson(`https://api.example.com/users/${id}`);
+export async function fetchUser(id: string): Promise<User | null> {
+  const [ok, error, data] = await fetchJson(
+    `https://api.example.com/users/${id}`,
+  );
 
-  if (ok) return Result.ok(data as User);
-  
+  if (ok) return data as User;
+
+  if (error.code === 'ABORTED') {
+    return null;
+  }
+
   if (error.code !== 'HTTP_ERROR') {
-    throw new Error(`Failed to fetch user: ${error.code}`, { cause: error.cause });
+    throw new Error(`Failed to fetch user: ${error.code}`, {
+      cause: error.cause,
+    });
   }
-  
-  if (error.status === 403) {
-    return Result.error('ERR_INSUFFICIENT_PERMISSIONS');
-  }
-  
+
   if (error.status === 404) {
-    return Result.error('ERR_NOTFOUND_USER');
+    return null;
   }
 
   throw new Error(`HTTP error on fetching user: ${error.status}`);

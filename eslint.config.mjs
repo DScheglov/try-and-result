@@ -24,7 +24,7 @@ export default tsLint.config(
           'tsconfig.json',
           'tsconfig.eslint.json',
           'tsconfig.test.json',
-          './example/tsconfig.json',
+          './examples/tsconfig.json',
         ],
       },
     },
